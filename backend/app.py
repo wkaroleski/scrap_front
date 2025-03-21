@@ -52,9 +52,24 @@ def scrape_pokemon(canal, usuario):
     Usa o ID para buscar os dados na API.
     """
     url = f"https://grynsoft.com/spos-app/?c={canal}&u={usuario}"
+    
+    # Configuração do Proxy
+    proxies = {
+        "http": "http://63.143.57.117:80",  # Proxy HTTP
+        "http": "https://52.26.114.229:1080",  # Proxy HTTPS
+    }
+
+    # Headers para simular um navegador real
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
     try:
         print(f"Scraping URL: {url}")
-        response = requests.get(url)
+        print(f"Usando Proxy: {proxies}")  # Imprime o proxy sendo usado
+
+        # Faz a requisição com o proxy e headers
+        response = requests.get(url, proxies=proxies, headers=headers)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
