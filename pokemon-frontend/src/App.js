@@ -5,9 +5,9 @@ import Filters from './components/Filters';
 import './App.css';
 
 function App() {
-  const [pokemons, setPokemons] = useState([]);
-  const [filteredPokemons, setFilteredPokemons] = useState([]);
-  const [types, setTypes] = useState([]);
+  const [pokemons, setPokemons] = useState();
+  const [filteredPokemons, setFilteredPokemons] = useState();
+  const [types, setTypes] = useState();
   const [selectedType, setSelectedType] = useState('');
   const [sortByStats, setSortByStats] = useState(false);
   const [canal, setCanal] = useState('');  // Estado para o canal
@@ -22,8 +22,8 @@ function App() {
 
     setLoading(true);  // Ativa o estado de carregamento
 
-    // Busca os Pokémon do backend Flask
-    axios.get('https://scrap-back-27u1.onrender.com/api/pokemons', {
+    // Busca os Pokémon da Netlify Function em Go
+    axios.get('/.netlify/functions/scrape-pokemons', {
       params: {
         canal: canal,
         usuario: usuario
