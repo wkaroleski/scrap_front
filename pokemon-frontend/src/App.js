@@ -23,7 +23,7 @@ function App() {
     setLoading(true);  // Ativa o estado de carregamento
 
     // Busca os Pokémon do backend Flask
-    axios.get('/api/pokemons', {
+    axios.get('https://scrap-back-27u1.onrender.com/api/pokemons', {
       params: {
         canal: canal,
         usuario: usuario
