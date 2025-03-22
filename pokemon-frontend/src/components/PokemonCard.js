@@ -28,6 +28,11 @@ const getTypeColor = (type) => {
 const PokemonCard = ({ pokemon }) => {
     const [isFlipped, setIsFlipped] = useState(false); // Estado para controlar se o card está virado
 
+    // Função para capitalizar a primeira letra do nome
+    const capitalizeFirstLetter = (str) => {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
     // Gera o gradiente com base nos tipos do Pokémon
     const getBackgroundStyle = () => {
         if (pokemon.types && pokemon.types.length > 1) {
@@ -63,7 +68,7 @@ const PokemonCard = ({ pokemon }) => {
 
                 {/* Nome do Pokémon e indicador de shiny */}
                 <div className="card-name">
-                    <h2>{pokemon.name}</h2>
+                    <h2>{capitalizeFirstLetter(pokemon.name)}</h2>
                     {pokemon.shiny && <p className="shiny">✨ Shiny ✨</p>}
                 </div>
 
@@ -91,7 +96,7 @@ const PokemonCard = ({ pokemon }) => {
 
             {/* Verso do card */}
             <div className="card-back">
-                <h2>{pokemon.name} Stats</h2>
+                <h2>{capitalizeFirstLetter(pokemon.name)} Stats</h2>
                 {pokemon.stats ? (
                     <ul>
                         {Object.entries(pokemon.stats).map(([statName, statValue]) => (
