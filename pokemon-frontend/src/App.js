@@ -10,9 +10,10 @@ function App() {
   const [types, setTypes] = useState([]);
   const [selectedType, setSelectedType] = useState('');
   const [sortByStats, setSortByStats] = useState(false);
-  const [canal, setCanal] = useState('');  // Estado para o canal
-  const [usuario, setUsuario] = useState('');  // Estado para o usuário
-  const [loading, setLoading] = useState(false);  // Estado para carregamento
+  const [canal, setCanal] = useState('');
+  const [usuario, setUsuario] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [prevParams, setPrevParams] = useState({ canal: '', usuario: '' });
 
   const fetchPokemons = () => {
     if (!canal || !usuario) {
@@ -20,47 +21,47 @@ function App() {
       return;
     }
 
-    setLoading(true);  // Ativa o estado de carregamento
+    // Evita buscar com os mesmos parâmetros
+    if (prevParams.canal === canal && prevParams.usuario === usuario) return;
 
-    // Busca os Pokémon do backend Flask
+    setPrevParams({ canal, usuario });
+    setLoading(true);
+
     axios.get('https://scrap-back-27u1.onrender.com/api/pokemons', {
-      params: {
-        canal: canal,
-        usuario: usuario
-      }
+      params: { canal, usuario, _t: Date.now() }, // Cache-buster
     })
       .then(response => {
         setPokemons(response.data);
         setFilteredPokemons(response.data);
-        // Extrai todos os tipos únicos de Pokémon
+
+        // Extrai e atualiza os tipos únicos
         const allTypes = response.data.flatMap(p => p.types);
         setTypes([...new Set(allTypes)]);
-        setLoading(false);  // Desativa o estado de carregamento
       })
-      .catch(error => {
-        console.error(error);
-        setLoading(false);  // Desativa o estado de carregamento em caso de erro
-      });
+      .catch(() => {
+        alert("Erro ao carregar Pokémon.");
+      })
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    if (pokemons.length > 0) {
-      let filtered = pokemons;
-      if (selectedType) {
-        filtered = filtered.filter(p => p.types.includes(selectedType));
-      }
-      if (sortByStats) {
-        filtered = [...filtered].sort((a, b) => b.total_base_stats - a.total_base_stats);
-      }
-      setFilteredPokemons(filtered);
+    if (pokemons.length === 0) return;
+
+    let filtered = pokemons;
+    if (selectedType) {
+      filtered = filtered.filter(p => p.types.includes(selectedType));
     }
+    if (sortByStats) {
+      filtered = [...filtered].sort((a, b) => b.total_base_stats - a.total_base_stats);
+    }
+
+    setFilteredPokemons(filtered);
   }, [selectedType, sortByStats, pokemons]);
 
   return (
     <div className="App">
       <h1>Pokémon Collection</h1>
 
-      {/* Campos de entrada para canal e usuário */}
       <div className="input-fields">
         <input
           type="text"
@@ -79,7 +80,6 @@ function App() {
         </button>
       </div>
 
-      {/* Filtros e lista de Pokémon */}
       <Filters
         types={types}
         selectedType={selectedType}
@@ -87,6 +87,7 @@ function App() {
         sortByStats={sortByStats}
         setSortByStats={setSortByStats}
       />
+
       <div className="pokemon-list">
         {filteredPokemons.map(pokemon => (
           <PokemonCard key={pokemon.id} pokemon={pokemon} />
