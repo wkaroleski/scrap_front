@@ -1,193 +1,353 @@
-/* Estilo do card */
-.pokemon-card {
-  border: 5px solid silver; /* Borda prateada */
-  border-radius: 15px;
-  margin: 10px;
-  padding: 10px;
-  width: 200px;
-  height: 300px; /* Altura fixa para o card */
-  text-align: center;
-  color: white; /* Texto branco para melhor contraste */
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.6s;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para efeito 3D */
-  background: linear-gradient(45deg, #9098a2, #c0c0c0); /* Gradiente padrão */
-}
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
-/* Efeito de flip */
-.pokemon-card.flipped {
-  transform: rotateY(180deg);
-}
-
-/* Lados do card (frente e verso) */
-.card-front,
-.card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  box-sizing: border-box;
-  border-radius: 10px; /* Bordas arredondadas */
-}
-
-/* Verso do card */
-.card-back {
-  transform: rotateY(180deg);
-  background: linear-gradient(
+/* Define variáveis globais de cor (Tema Claro - Padrão) */
+:root {
+  --cor-fundo-app: linear-gradient(
     45deg,
-    #333,
-    #555
-  ); /* Gradiente escuro para o verso */
+    #ff6b6b,
+    #e62e2d
+  ); /* Degradê Vermelho Pokemon */
+  --cor-texto-primario: #212529; /* Texto escuro */
+  --cor-fundo-card: linear-gradient(
+    45deg,
+    #e0e0e0,
+    #f5f5f5
+  ); /* Cinza claro para cards */
+  --cor-borda-card: #adb5bd; /* Cinza médio para borda */
+  --cor-texto-card: #343a40; /* Texto escuro no card */
+  --cor-botao-bg: #007bff;
+  --cor-botao-texto: white;
+  --cor-input-borda: #ced4da;
+  --cor-input-bg: white;
+  --cor-link: #0056b3;
+  --sombra-card: rgba(0, 0, 0, 0.1);
+  --icone-cor: #343a40;
 }
 
-/* Fundo com Pokébola */
-.pokeball-background {
-  position: absolute;
-  top: 0;
-  left: -7px;
-  width: 100%;
-  height: 100%;
-  background-image: url("./../public/pokeball.svg");
-  background-size: 100%; /* Tamanho da Pokébola */
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.1; /* Transparência */
-  z-index: 1;
+/* Define variáveis para o Tema Escuro */
+body.dark-mode {
+  /* Aplica no body */
+  --cor-fundo-app: linear-gradient(
+    45deg,
+    #3a3a3a,
+    #1c1c1c
+  ); /* Degradê escuro */
+  --cor-texto-primario: #e0e0e0; /* Texto claro */
+  --cor-fundo-card: linear-gradient(
+    45deg,
+    #495057,
+    #343a40
+  ); /* Cinza escuro para cards */
+  --cor-borda-card: #6c757d; /* Cinza mais escuro para borda */
+  --cor-texto-card: #f8f9fa; /* Texto claro no card */
+  --cor-botao-bg: #5a5a5a;
+  --cor-botao-texto: #e0e0e0;
+  --cor-input-borda: #6c757d;
+  --cor-input-bg: #495057;
+  --cor-link: #6cb2ff;
+  --sombra-card: rgba(255, 255, 255, 0.1);
+  --icone-cor: #f8f9fa;
 }
 
-/* Estilo para o nome do Pokémon e indicador de shiny */
-.card-name {
+/* Estilos Globais */
+body {
+  background: var(--cor-fundo-app);
+  color: var(--cor-texto-primario);
+  transition: background 0.3s ease, color 0.3s ease;
+  margin: 0;
+  font-family: sans-serif;
+  min-height: 100vh;
+}
+
+.App {
   text-align: center;
-  margin-bottom: 10px;
-  z-index: 2; /* Garante que o nome fique acima da Pokébola */
+  padding: 20px;
+  position: relative;
 }
 
-.card-name h2 {
-  margin: 0;
-  font-size: 1.5em;
+h1 {
+  /* color: var(--cor-texto-primario); */ /* Comente ou remova a linha antiga */
+  color: #6cb2ff; /* Azul Pokémon - Ajuste o Hex se preferir outro tom */
+  margin-bottom: 20px;
+  font-family: "Press Start 2P", cursive; /* Usa a fonte importada, com fallback */
+  font-size: 2.2em; /* Ajuste o tamanho para esta fonte */
+  text-shadow: 2px 2px 0px #ffcb05, -2px -2px 0px #ffcb05, 2px -2px 0px #ffcb05,
+    -2px 2px 0px #ffcb05;
+  letter-spacing: 1px;
 }
 
-.card-name .shiny {
-  color: gold;
-  font-weight: bold;
-  margin: 0;
-  font-size: 0.9em;
-}
-
-/* Estilo para a imagem do Pokémon */
-.card-image {
-  width: 100%;
-  height: 150px; /* Altura fixa para a imagem */
+/* Botão de Toggle de Tema */
+.theme-toggle-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  color: var(--icone-cor);
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2; /* Garante que a imagem fique acima da Pokébola */
+  font-size: 1.8em;
+  z-index: 10;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.theme-toggle-button:hover {
+  transform: scale(1.1);
 }
 
-.card-image img {
-  max-width: 100%;
-  max-height: 100%;
-}
-
-/* Estilo para o tipo do Pokémon */
-.card-type {
-  text-align: center;
-  margin: 10px 0;
-  font-size: 1em;
-  z-index: 2; /* Garante que o tipo fique acima da Pokébola */
-}
-
-/* Estilo para o ID do Pokémon */
-.card-id {
-  position: absolute;
-  top: -20px;
-  left: -5px;
-  font-size: 1.2em;
-  font-weight: bold;
-  z-index: 2; /* Garante que o ID fique acima da Pokébola */
-}
-
-/* Estilo para o verso do card */
-.card-back h2 {
-  margin: 0;
-  font-size: 1.5em;
-}
-
-.card-back .total-stats {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-/* Stats Total no canto superior direito */
-.card-stats {
-  position: absolute;
-  bottom: -6px;
-  right: 50px;
-  font-size: 1em;
-  font-weight: bold; /* Negrito */
-  z-index: 2; /* Garante que o Stats Total fique acima da Pokébola */
-}
-
-.card-back ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  text-align: left;
-  width: 100%;
-}
-
-.card-back ul li {
-  margin: 5px 0;
-}
-
-/* Estilo para o container da lista de Pokémon */
-.pokemon-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-/* Estilo para os campos de entrada e botão */
+/* Inputs e Botões */
 .input-fields {
   margin-bottom: 20px;
 }
 
 .input-fields input {
+  border: 1px solid var(--cor-input-borda);
+  background-color: var(--cor-input-bg);
+  color: var(--cor-texto-primario);
   padding: 10px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
+  margin: 5px;
   border-radius: 5px;
 }
 
 .input-fields button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--cor-botao-bg);
+  color: var(--cor-botao-texto);
   border: none;
+  padding: 10px 15px;
+  margin: 5px;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  vertical-align: middle;
 }
 
 .input-fields button:disabled {
-  background-color: #ccc;
+  background-color: #6c757d;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
-/* Estilo global */
-.App {
-  text-align: center;
-  padding: 20px;
+.spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  font-size: 1.2em;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* Estilo para o título */
-h1 {
+/* Filtros */
+.filters {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  color: var(--cor-texto-primario);
+}
+.filters select,
+.filters label {
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid var(--cor-input-borda);
+  background-color: var(--cor-input-bg);
+  color: var(--cor-texto-primario);
+}
+.filters input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+/* Lista de Pokémon */
+.pokemon-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* Card do Pokémon - Estilo Base */
+.pokemon-card {
+  border: 5px solid var(--cor-borda-card);
+  border-radius: 15px;
+  margin: 10px;
+  /* padding: 10px; NÂO precisa de padding aqui, pois .card-front/back terão */
+  width: 200px;
+  height: 300px;
+  text-align: center;
+  color: var(--cor-texto-card); /* Cor padrão para FRENTE */
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s, background 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 8px var(--sombra-card);
+  background: var(--cor-fundo-card); /* Fundo padrão para FRENTE */
+  box-sizing: border-box; /* Inclui borda no tamanho */
+}
+
+/* Efeito de Flip */
+.pokemon-card.flipped {
+  transform: rotateY(180deg);
+}
+
+/* Estilos COMUNS para frente e verso (Posicionamento, esconder verso) */
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden; /* ESSENCIAL para o flip funcionar */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px; /* Padding interno das faces */
+  box-sizing: border-box;
+  border-radius: 10px; /* Raio interno (menor que o do card) */
+}
+
+/* Estilos ESPECÍFICOS da FRENTE */
+.card-front {
+  justify-content: space-between; /* Distribui elementos na frente */
+  /* Cor e fundo são herdados de .pokemon-card e usam variáveis de tema */
+  /* Não colocar 'transform' aqui */
+}
+
+/* Estilos ESPECÍFICOS do VERSO */
+.card-back {
+  transform: rotateY(180deg); /* Começa virado */
+  background: linear-gradient(45deg, #2a2a2a, #4a4a4a); /* Fundo escuro FIXO */
+  color: #ffffff; /* Cor do texto branca FIXA */
+  justify-content: flex-start; /* Alinha conteúdo (título, stats) no topo */
+}
+
+/* Fundo da Pokebola (comum à frente) */
+.pokeball-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("./../public/pokeball.svg"); /* Verifique o caminho */
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+  z-index: 1; /* Fica atrás do conteúdo */
+  border-radius: 10px;
+}
+
+/* --- Estilos do Conteúdo da FRENTE --- */
+/* Usam variáveis para mudar com o tema */
+
+.card-name {
+  text-align: center;
+  margin-bottom: 5px;
+  z-index: 2; /* Acima da pokebola */
+  width: 100%;
+  color: var(--cor-texto-card); /* Usa variável */
+}
+.card-name h2 {
+  margin: 0;
+  font-size: 1.3em;
+  word-wrap: break-word;
+  /* Cor herdada de .card-name */
+}
+.card-name .shiny {
+  color: gold;
+  text-shadow: 1px 1px 0 #888888;
+  font-weight: bold;
+  margin: 2px 0 0 0;
+  font-size: 0.8em;
+}
+
+.card-image {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+  margin: 5px 0;
+}
+.card-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.card-type {
+  text-align: center;
+  margin: 10px 0;
+  font-size: 0.9em;
+  font-weight: bold;
+  text-transform: uppercase;
+  z-index: 2;
+  color: var(--cor-texto-card); /* Usa variável */
+}
+
+.card-id {
+  position: absolute;
+  top: -5px;
+  left: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  z-index: 2;
+  color: var(--cor-texto-card); /* Usa variável */
+  opacity: 0.7;
+}
+
+.card-stats {
+  /* Total na frente */
+  position: absolute;
+  bottom: 5px;
+  right: 40px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+  z-index: 2;
+  margin-bottom: -10px;
+  color: var(--cor-texto-card); /* Usa variável */
+  opacity: 0.8;
+}
+
+/* --- Estilos do Conteúdo do VERSO --- */
+/* Usam cor branca fixa */
+
+.card-back h2 {
+  color: #ffffff; /* Branco fixo */
+  margin: 0 0 10px 0;
+  font-size: 1.3em;
+}
+
+.card-back ul {
+  color: #ffffff; /* Branco fixo */
+  list-style: none;
+  padding: 0 10px;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+  font-size: 0.85em;
+  box-sizing: border-box;
+}
+
+.card-back ul li {
+  margin: 3px 0;
+  display: flex;
+  justify-content: space-between;
+  /* Cor herdada do ul (branco) */
+}
+
+.card-back ul li strong {
+  margin-right: 5px;
+  /* Cor herdada do ul (branco) */
 }
