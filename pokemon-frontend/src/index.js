@@ -1,13 +1,19 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
+import ReactDOM from 'react-dom/client'; // Ou import ReactDOM from 'react-dom'; para versões mais antigas
+import { BrowserRouter } from 'react-router-dom'; // <-- Importar
+import './index.css'; // Seu CSS global, se houver
 import App from './App';
-import reportWebVitals from './reportWebVitals';
+import reportWebVitals from './reportWebVitals'
+// import reportWebVitals from './reportWebVitals'; // Se você usa
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {/* V--- Envolve o App com BrowserRouter ---V */}
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+    {/* ^--- Fim do BrowserRouter ---^ */}
   </React.StrictMode>
 );
 
