@@ -45,14 +45,6 @@ function CompareView({ apiBaseUrl }) {
 
     return (
         <div> {/* Envolve em um div ou fragmento */}
-            {/* Link para Voltar */}
-            <div style={{ textAlign: 'left', marginBottom: '20px' }}>
-                <Link to="/">
-                    <button>&larr; Voltar para Minha Pokédex</button> {/* Botão simples de voltar */}
-                </Link>
-            </div>
-
-            {/* --- Copia a Seção de Comparação do App.js antigo --- */}
             <div className="comparison-section">
                 <h2>Compare sua Pokédex</h2>
                 <p>Veja os Pokémon que outro treinador no canal tem e você não.</p>

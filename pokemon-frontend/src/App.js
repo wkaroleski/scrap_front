@@ -1,12 +1,9 @@
-// Arquivo: App.js (Versão Simplificada com Rotas)
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom'; // <-- Importa componentes de rota
-// Importa os ícones para o toggle de tema
-import { FiSun, FiMoon } from "react-icons/fi";
-
-// Importa os NOVOS componentes de página/view que vamos criar
-import PokedexView from './views/pokedexView'; // Assumindo que criará em src/views/
-import CompareView from './views/compareView'; // Assumindo que criará em src/views/
+import { Routes, Route } from 'react-router-dom';
+import { FiSun, FiMoon, FiRefreshCw, FiMenu, FiX } from "react-icons/fi";
+import Sidebar from './components/Sidebar';
+import PokedexView from './views/pokedexView';
+import CompareView from './views/compareView';
 
 import './App.css';
 
@@ -18,6 +15,10 @@ const API_BASE_URL = isProduction
 console.log(`APP: API rodando em modo: ${isProduction ? 'Produção' : 'Desenvolvimento'}. URL Base: ${API_BASE_URL}`);
 
 function App() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen); // Inverte o estado atual
+  };
   // --- State e Lógica do Dark Mode (Pode ficar aqui se for global) ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -38,6 +39,23 @@ function App() {
   return (
     // Não precisa mais da classe dark-mode aqui se aplicou no body
     <div className="App">
+      {/* --- BOTÃO HAMBURGER/X --- */}
+      <button
+        onClick={toggleSidebar}
+        className="hamburger-button"
+        // Atualiza aria-label dinamicamente
+        aria-label={isSidebarOpen ? "Fechar menu" : "Abrir menu"}
+        title={isSidebarOpen ? "Fechar menu" : "Abrir menu"} // Tooltip dinâmico
+      >
+        {/* Renderiza FiX se estiver aberto, FiMenu se fechado */}
+        {isSidebarOpen ? <FiX /> : <FiMenu />}
+      </button>
+      {/* --- FIM BOTÃO HAMBURGER/X --- */}
+
+      {/* --- RENDERIZA O SIDEBAR --- */}
+      <Sidebar isOpen={isSidebarOpen} closeSidebar={toggleSidebar} />
+      {isSidebarOpen && <div className="overlay" onClick={toggleSidebar}></div>}
+
       {/* Botão de Toggle Dark Mode (Global) */}
       <button onClick={toggleDarkMode} className="theme-toggle-button" aria-label={`Mudar para tema ${isDarkMode ? 'claro' : 'escuro'}`} title={`Mudar para tema ${isDarkMode ? 'claro' : 'escuro'}`} >
         {isDarkMode ? <FiSun /> : <FiMoon />}

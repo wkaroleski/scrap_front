@@ -111,17 +111,6 @@ function PokedexView({ apiBaseUrl }) {
             )}
             {/* Fim da exibição da lista principal */}
 
-
-            {/* --- Link/Botão para a Página de Comparação --- */}
-            {/* AGORA ESTÁ FORA DA CONDIÇÃO, renderiza sempre */}
-            <div className="navigation-link" style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid var(--cor-input-borda)' }}>
-                <p>Quer ver os Pokémon que seus amigos têm e você não?</p>
-                <Link to="/compare">
-                    <button className="compare-button">Comparar Pokédex</button>
-                </Link>
-            </div>
-            {/* --- Fim do Link --- */}
-
         </div>
     );
 

@@ -1,0 +1,117 @@
+/* === Estilos para o Menu Lateral (Sidebar) === */
+
+.hamburger-button {
+  position: fixed; /* Fixo na tela */
+  top: 15px;
+  left: 15px;
+  background: none;
+  color: var(--icone-cor); /* Usa cor do tema */
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8em; /* Tamanho do ícone hamburger */
+  z-index: 1001; /* Garante que fique acima de outros elementos, incluindo sidebar/overlay */
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+.hamburger-button:hover {
+  transform: scale(1.1);
+}
+
+.sidebar {
+  position: fixed; /* Fixo na tela */
+  top: 0;
+  left: 0;
+  height: 100vh; /* Altura total da tela */
+  width: 280px; /* Largura do menu - ajuste conforme necessário */
+  background-color: var(--cor-input-bg); /* Usa cor de fundo baseada no tema */
+  color: var(--cor-texto-primario); /* Cor de texto baseada no tema */
+  padding: 60px 20px 20px 20px; /* Espaçamento interno (maior no topo para botão fechar) */
+  box-shadow: 3px 0 8px rgba(0, 0, 0, 0.2); /* Sombra lateral */
+  transform: translateX(-100%); /* Começa escondido fora da tela à esquerda */
+  transition: transform 0.3s ease-in-out; /* Animação de deslizar */
+  z-index: 1000; /* Fica acima do conteúdo principal, mas abaixo do hamburger */
+  box-sizing: border-box;
+  border-right: 1px solid var(--cor-input-borda); /* Linha divisória sutil */
+  overflow-y: auto; /* Permite rolagem se o conteúdo for maior */
+}
+
+/* Estilo para quando o sidebar estiver aberto */
+.sidebar.open {
+  transform: translateX(0); /* Move para a posição visível */
+}
+
+.sidebar .close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 2.2em; /* Tamanho do 'X' */
+  font-weight: bold;
+  color: var(--cor-texto-primario); /* Cor baseada no tema */
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+.sidebar .close-button:hover {
+  opacity: 0.7;
+}
+
+/* Estilos para os links dentro do sidebar */
+.sidebar ul {
+  list-style: none;
+  padding: 20px 0 0 0; /* Adiciona espaço acima da lista */
+  margin: 0;
+}
+
+.sidebar ul li {
+  margin-bottom: 20px; /* Espaço entre os links */
+}
+
+.sidebar ul li a {
+  color: #6cb2ff;
+  font-family: "Press Start 2P", cursive;
+  text-decoration: none;
+  font-size: 12px;
+  display: block;
+  padding: 10px 15px; /* Padding para área de clique e fundo */
+  margin: 5px 0; /* Espaço vertical */
+  border-radius: 8px; /* Borda arredondada para o fundo */
+  transition: background-color 0.2s ease;
+}
+
+.sidebar ul li a:hover {
+  text-decoration: none; /* Remove sublinhado padrão */
+  background-color: rgba(0, 0, 0, 0.1); /* Leve destaque no hover */
+}
+/* Ajuste para dark mode no hover do link */
+body.dark-mode .sidebar ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Estilos para o Overlay (fundo escurecido) */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Fundo semi-transparente */
+  opacity: 0; /* Começa invisível */
+  visibility: hidden; /* Começa escondido */
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  z-index: 999; /* Fica abaixo do sidebar, mas acima do conteúdo principal */
+}
+
+/* Estilo para quando o overlay estiver ativo */
+.overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* === Fim dos Estilos para o Menu Lateral === */
