@@ -1,119 +1,222 @@
 // Arquivo: src/views/PokedexView.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom'; // <-- Importa Link para navegação
-import { FiRefreshCw } from "react-icons/fi"; // Ícone de refresh
-import PokemonCard from '../components/PokemonCard'; // Ajuste o caminho se necessário
-import Filters from '../components/Filters';       // Ajuste o caminho se necessário
-// Importa o CSS global ou um específico se desejar
-// import './PokedexView.css'; // Se criar CSS específico
+import { FiRefreshCw } from "react-icons/fi";
+import PokemonCard from '../components/PokemonCard';
+import Filters from '../components/Filters';
+import PaginationControls from '../components/PaginationControls';
 
-// Recebe a URL base da API via props
+const ITEMS_PER_PAGE = 24;
+
 function PokedexView({ apiBaseUrl }) {
-    // --- Copia os Estados da Pokédex Principal do App.js antigo ---
-    const [pokemons, setPokemons] = useState([]);
-    const [filteredPokemons, setFilteredPokemons] = useState([]);
-    const [types, setTypes] = useState([]);
-    const [selectedType, setSelectedType] = useState('');
-    const [sortByStats, setSortByStats] = useState(false);
+    // --- Estados dos Inputs (o que o usuário digita) ---
     const [canal, setCanal] = useState('');
     const [usuario, setUsuario] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [prevParams, setPrevParams] = useState({ canal: '', usuario: '' });
-    const [isFetchingInitial, setIsFetchingInitial] = useState(false);
-    // --- Fim dos Estados ---
 
-    // --- Copia as Funções de API e Helpers do App.js antigo ---
-    const handleApiResponse = (data) => {
-        setPokemons(data);
-        const allTypes = data.flatMap(p => p.types || []);
-        setTypes([...new Set(allTypes)]);
-        setPrevParams({ canal, usuario });
-    };
+    // --- Estados da Busca Ativa (o que foi confirmado no clique) ---
+    const [searchedCanal, setSearchedCanal] = useState('');
+    const [searchedUsuario, setSearchedUsuario] = useState('');
 
-    const handleApiError = (error) => {
-        console.error("Erro ao buscar/atualizar Pokémon:", error);
-        const errorMsg = error.response?.data?.error || "Erro ao buscar/atualizar Pokémon.";
-        alert(errorMsg);
-    };
+    // --- Estados da Lista e Paginação ---
+    const [pokemonListPage, setPokemonListPage] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const fetchPokemons = () => {
-        if (!canal || !usuario) { alert("Por favor, preencha o canal e o usuário."); return; }
-        if (prevParams.canal === canal && prevParams.usuario === usuario && !isFetchingInitial) { console.log("Params iguais, busca ignorada."); return; }
-        console.log("Buscando Pokémon para:", canal, usuario);
-        setLoading(true); setIsFetchingInitial(true);
-        axios.get(`${apiBaseUrl}/api/pokemons`, { params: { canal, usuario, _t: Date.now() } })
-            .then(response => handleApiResponse(response.data))
-            .catch(handleApiError)
-            .finally(() => { setLoading(false); setIsFetchingInitial(false); });
-    };
+    // --- Estados de Filtro e Ordenação ---
+    const [selectedType, setSelectedType] = useState('');
+    const [sortBy, setSortBy] = useState('id');
+    const [order, setOrder] = useState('asc');
+    const [availableTypes, setAvailableTypes] = useState([ /* ... lista ... */
+        'normal', 'fire', 'water', 'electric', 'grass', 'ice',
+        'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug',
+        'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
+    ]);
 
-    const handleRefresh = () => {
-        if (!canal || !usuario) { alert("Canal e usuário precisam estar preenchidos para atualizar."); return; }
-        console.log("Forçando refresh para:", canal, usuario);
-        setLoading(true); setIsFetchingInitial(false);
-        axios.get(`${apiBaseUrl}/api/pokemons`, { params: { canal, usuario, refresh: true, _t: Date.now() } })
-            .then(response => handleApiResponse(response.data))
-            .catch(handleApiError)
-            .finally(() => setLoading(false));
-    };
-    // --- Fim das Funções ---
+    // --- Função de Busca (Agora usa searchedCanal/searchedUsuario) ---
+    const fetchPokemonsData = useCallback(async (forceRefresh = false) => {
+        // Só busca se houver termos de busca confirmados
+        if (!searchedCanal || !searchedUsuario) {
+            setPokemonListPage([]); setTotalItems(0); setTotalPages(0); setError('');
+            // Não precisa resetar a página aqui, pois ela só muda com interação do usuário ou nova busca
+            return;
+        }
 
-    // --- Copia o useEffect de Filtros/Ordenação do App.js antigo ---
+        console.log(`Buscando... Canal: ${searchedCanal}, Usuário: ${searchedUsuario}, Página: ${currentPage}, Tipo: ${selectedType}, Sort: ${sortBy} ${order}, Refresh: ${forceRefresh}`);
+        setIsLoading(true);
+        setError('');
+
+        const params = {
+            // Usa os estados da busca confirmada
+            canal: searchedCanal,
+            usuario: searchedUsuario,
+            // --- Parâmetros de paginação/filtro/ordenação ---
+            page: currentPage,
+            per_page: ITEMS_PER_PAGE,
+            type: selectedType || undefined,
+            sort_by: sortBy,
+            order: order,
+            refresh: forceRefresh ? true : undefined,
+            _t: Date.now()
+        };
+
+        try {
+            const response = await axios.get(`${apiBaseUrl}/api/pokemons`, { params });
+            if (response.data && response.data.items && response.data.metadata) {
+                setPokemonListPage(response.data.items);
+                setTotalItems(response.data.metadata.total_items);
+                setTotalPages(response.data.metadata.total_pages);
+                if (response.data.metadata.page !== currentPage) {
+                    setCurrentPage(response.data.metadata.page);
+                }
+            } else {
+                setError("Formato de resposta inesperado da API.");
+                setPokemonListPage([]); setTotalItems(0); setTotalPages(0);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar Pokémon:", error);
+            const errorMsg = error.response?.data?.error || "Falha ao buscar dados dos Pokémon.";
+            setError(errorMsg);
+            setPokemonListPage([]); setTotalItems(0); setTotalPages(0);
+        } finally {
+            setIsLoading(false);
+        }
+        // Depende dos estados de busca confirmada + paginação/filtros
+    }, [apiBaseUrl, searchedCanal, searchedUsuario, currentPage, selectedType, sortBy, order]);
+
+
+    // --- useEffect Principal (Agora depende da busca confirmada) ---
     useEffect(() => {
-        if (!pokemons || pokemons.length === 0) { setFilteredPokemons([]); return; };
-        console.log("Aplicando filtros/ordenação na Dex principal...");
-        let filtered = [...pokemons];
-        if (selectedType) { filtered = filtered.filter(p => Array.isArray(p.types) && p.types.includes(selectedType)); }
-        if (sortByStats) { filtered.sort((a, b) => (b.total_base_stats || 0) - (a.total_base_stats || 0)); }
-        setFilteredPokemons(filtered);
-    }, [selectedType, sortByStats, pokemons]);
-    // --- Fim useEffect ---
+        // Chama a busca se os termos confirmados existirem
+        // Isso vai rodar quando searchedCanal/searchedUsuario mudarem (após clique no botão)
+        // ou quando currentPage/selectedType/sortBy/order mudarem para uma busca ativa.
+        if (searchedCanal && searchedUsuario) {
+            fetchPokemonsData();
+        } else {
+            // Se não há busca ativa, garante que a lista esteja limpa
+            setPokemonListPage([]);
+            setTotalItems(0);
+            setTotalPages(0);
+            setCurrentPage(1); // Reseta página se a busca for cancelada/limpa
+            setError('');
+        }
+        // Removido canal, usuario das dependências, adicionado searchedCanal, searchedUsuario
+    }, [searchedCanal, searchedUsuario, currentPage, selectedType, sortBy, order, fetchPokemonsData]);
 
-    // Dentro do componente PokedexView
+
+    // --- Handler do Botão Buscar (Confirma a busca) ---
+    const handleSearchClick = () => {
+        if (!canal || !usuario) {
+            alert("Por favor, preencha o canal e o usuário.");
+            return;
+        }
+        // Atualiza os estados da busca confirmada com os valores dos inputs
+        setSearchedCanal(canal);
+        setSearchedUsuario(usuario);
+        // Reseta para a página 1 para a nova busca
+        setCurrentPage(1);
+        // O useEffect vai disparar a chamada a fetchPokemonsData por causa
+        // da mudança em searchedCanal, searchedUsuario e/ou currentPage.
+    };
+
+    // --- Handler do Botão Refresh (Usa a busca confirmada) ---
+    const handleRefreshClick = () => {
+        // Só faz refresh se já houve uma busca confirmada
+        if (!searchedCanal || !searchedUsuario) {
+            alert("Faça uma busca primeiro antes de atualizar.");
+            return;
+        }
+        // Opcional: manter a página atual ou resetar para 1? Vamos manter a atual.
+        // setCurrentPage(1);
+        fetchPokemonsData(true); // Chama a função com forceRefresh = true para a busca atual
+    };
+
+
+    // --- Lógica para tecla Enter nos inputs ---
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleSearchClick(); // Chama a mesma função do botão
+        }
+    };
+
 
     return (
-        <div> {/* Div principal do componente */}
-
-            {/* Seção de Busca Principal */}
+        <div>
+            {/* Input Fields - Adiciona onKeyPress */}
             <div className="input-fields">
-                <input type="text" placeholder="Canal" value={canal} onChange={e => setCanal(e.target.value)} disabled={loading} />
-                <input type="text" placeholder="Usuário da Twitch" value={usuario} onChange={e => setUsuario(e.target.value)} disabled={loading} />
-                <button onClick={fetchPokemons} disabled={loading || !canal || !usuario || (prevParams.canal === canal && prevParams.usuario === usuario && !isFetchingInitial)} >
-                    {loading && isFetchingInitial ? "Buscando..." : "Buscar Pokémon"}
+                <input
+                    type="text"
+                    placeholder="Canal"
+                    value={canal}
+                    onChange={e => setCanal(e.target.value)}
+                    onKeyPress={handleKeyPress} // <-- Adicionado
+                    disabled={isLoading}
+                />
+                <input
+                    type="text"
+                    placeholder="Usuário da Twitch"
+                    value={usuario}
+                    onChange={e => setUsuario(e.target.value)}
+                    onKeyPress={handleKeyPress} // <-- Adicionado
+                    disabled={isLoading}
+                />
+                {/* Botão Buscar agora chama handleSearchClick */}
+                <button onClick={handleSearchClick} disabled={isLoading || !canal || !usuario} >
+                    {isLoading ? "Buscando..." : "Buscar Pokémon"}
                 </button>
-                <button onClick={handleRefresh} disabled={loading || !canal || !usuario} style={{ marginLeft: '10px', padding: '8px' }} aria-label="Atualizar dados" title="Forçar atualização dos dados" >
-                    {loading && !isFetchingInitial ? <span className="spinner">🔄</span> : <FiRefreshCw size={20} />}
+                {/* Botão Refresh agora chama handleRefreshClick */}
+                <button onClick={handleRefreshClick} disabled={isLoading || !searchedCanal || !searchedUsuario} style={{ marginLeft: '10px', padding: '8px' }} title="Forçar atualização dos dados da busca atual">
+                    {/* Desabilita se estiver carregando ou se não houver busca ativa */}
+                    {isLoading ? <span className="spinner">🔄</span> : <FiRefreshCw size={20} />}
                 </button>
             </div>
 
-            {/* Filtros para a Busca Principal */}
-            {/* Só mostra filtros se a busca principal já retornou pokemons */}
-            {pokemons && pokemons.length > 0 && (
+            {/* Filtros - Mostra se houver busca ativa ou loading/error */}
+            {(searchedCanal && searchedUsuario) || isLoading || error ? (
                 <Filters
-                    types={types}
+                    types={availableTypes}
                     selectedType={selectedType}
-                    setSelectedType={setSelectedType}
-                    sortByStats={sortByStats}
-                    setSortByStats={setSortByStats}
+                    // Ao mudar filtro/ordem, reseta a página. O useEffect busca.
+                    setSelectedType={(type) => { setSelectedType(type); setCurrentPage(1); }}
+                    sortBy={sortBy}
+                    setSortBy={(value) => { setSortBy(value); setCurrentPage(1); }}
+                    order={order}
+                    setOrder={(value) => { setOrder(value); setCurrentPage(1); }}
                 />
+            ) : (
+                // Mensagem inicial antes da primeira busca
+                <p style={{ marginTop: '20px', fontStyle: 'italic' }}>Digite o canal e usuário e clique em "Buscar Pokémon".</p>
             )}
 
-            {/* Exibição da Pokédex Principal */}
-            {loading && isFetchingInitial ? (<p>Carregando Pokémon...</p>) : (
+
+            {/* Loading / Error */}
+            {isLoading && <p>Carregando Pokémon...</p>}
+            {error && <p className="error-message">Erro: {error}</p>}
+
+            {/* Lista ou Mensagem de Nenhum Resultado */}
+            {!isLoading && !error && searchedCanal && searchedUsuario && totalItems === 0 && <p>Nenhum Pokémon encontrado para '{searchedUsuario}' no canal '{searchedCanal}' com os filtros selecionados.</p>}
+            {!isLoading && totalItems > 0 && (
                 <div className="pokemon-list">
-                    {filteredPokemons.length === 0 && pokemons.length > 0 && <p>Nenhum Pokémon encontrado com os filtros selecionados.</p>}
-                    {filteredPokemons.length === 0 && !loading && prevParams.canal && pokemons.length === 0 && <p>Nenhum pokémon encontrado para este usuário/canal ou a busca falhou.</p>}
-                    {filteredPokemons.map(pokemon => (
+                    {pokemonListPage.map(pokemon => (
                         pokemon ? <PokemonCard key={pokemon.id || Math.random()} pokemon={pokemon} /> : null
                     ))}
                 </div>
             )}
-            {/* Fim da exibição da lista principal */}
+
+            {/* Controles de Paginação */}
+            {!isLoading && totalPages > 1 && (
+                <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    setCurrentPage={setCurrentPage}
+                    totalItems={totalItems}
+                />
+            )}
 
         </div>
     );
-
 }
 
 export default PokedexView;
